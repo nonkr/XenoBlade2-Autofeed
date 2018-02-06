@@ -19,6 +19,7 @@ these buttons for our use.
 */
 
 #include "Joystick.h"
+#define ALERT_WHEN_DONE
 
 typedef enum {
 	UP,
@@ -31,7 +32,7 @@ typedef enum {
 	B,
 	L,
 	R,
-	THROW,
+	PLUS,
 	NOTHING,
 	TRIGGERS
 } Buttons_t;
@@ -41,149 +42,67 @@ typedef struct {
 	uint16_t duration;
 } command; 
 
-static const command step[] = {
-	// Setup controller
+static int feed_time = 10; // if you don't upgrade your package capacity
+
+static const command sync_controller[] = {
 	{ NOTHING,  250 },
 	{ TRIGGERS,   5 },
 	{ NOTHING,  150 },
 	{ TRIGGERS,   5 },
 	{ NOTHING,  150 },
 	{ A,          5 },
-	{ NOTHING,  250 },
+	{ NOTHING,  250 }
+};
 
-	// Talk to Pondo
-	{ A,          5 }, // Start
-	{ NOTHING,   30 },
-	{ B,          5 }, // Quick output of text
-	{ NOTHING,   20 }, // Halloo, kiddums!
-	{ A,          5 }, // <- I'll try it!
-	{ NOTHING,   15 },
-	{ B,          5 },
-	{ NOTHING,   20 },
-	{ A,          5 }, // <- OK!
-	{ NOTHING,   15 },
-	{ B,          5 },
-	{ NOTHING,   20 }, // Aha! Play bells are ringing! I gotta set up the pins, but I'll be back in a flurry
-	{ A,          5 }, // <Continue>
-	{ NOTHING,  325 }, // Cut to different scene (Knock 'em flat!)
-	{ B,          5 },
-	{ NOTHING,   20 },
-	{ A,          5 }, // <Continue> // Camera transition takes place after this
-	{ NOTHING,   50 },
-	{ B,          5 },
-	{ NOTHING,   20 }, // If you can knock over all 10 pins in one roll, that's a strike
-	{ A,          5 }, // <Continue>
-	{ NOTHING,   15 },
-	{ B,          5 },
-	{ NOTHING,   20 }, // A spare is...
-	{ A,          5 }, // <Continue>
-	{ NOTHING,  100 }, // Well, good luck
-	{ A,          5 }, // <Continue>
-	{ NOTHING,  150 }, // Pondo walks away
-
-	// Pick up Snowball (Or alternatively, run to bail in case of a non-strike)
+static const command buy_item[] = {
+    { A,          5 },
+    { NOTHING,  300 },
+	{ A,          5 }, 
+	{ NOTHING,  300 },
+	{ A,          5 }, 
+	{ NOTHING,  300 }, 
+	{ A,          5 }, 
+	{ NOTHING,  300 },
 	{ A,          5 },
-	{ NOTHING,   50 },
-	{ LEFT,      42 },
-	{ UP,        80 },
-	{ THROW,     25 },
+	{ NOTHING,  300 },
+	{ LEFT,       5 },
+	{ NOTHING,  300 },
+	{ A,          5 },
+	{ NOTHING,  300 }, 
+	{ B,          5 },
+	{ NOTHING,  300 },
+	{ B,          5 },
+	{ NOTHING,  300 },
+    { PLUS,       5 },
+	{ NOTHING,  300 },
+	{ A,          5 },
+	{ NOTHING,  300 },
+	{ A,          5 },
+	{ NOTHING,  300 },
+    { LEFT,       5 },
+	{ NOTHING,  300 },
+	{ A,          5 },
+	{ NOTHING,  300 }
+};
 
-	// Non-strike alternative flow, cancel bail and rethrow
-	{ NOTHING,   30 },
-	{ B,          5 },
-	{ NOTHING,   20 },
-	{ B,          5 }, // I have to split dialogue (It's nothing)
-	{ NOTHING,   15 },
-	{ B,          5 },
-	{ NOTHING,   20 },
-	{ B,          5 },
-	{ NOTHING,  450 },
-	{ B,          5 }, // Snowly moly... there are rules!
-	{ NOTHING,   20 },
-	{ B,          5 },
-	{ NOTHING,   20 },
-	{ B,          5 }, // Second dialogue
-	{ NOTHING,   20 },
-	{ DOWN,      10 }, // Return to snowball
-	{ NOTHING,   20 },
-	{ A,          5 }, // Pick up snowball, we just aimlessly throw it
-	{ NOTHING,   50 },
-	{ UP,        10 },
-	{ THROW,     25 },
+static const command feed_item[] = {
+	{ A,	      5 },
+	{ NOTHING,   300 },
+	{ A,          5 },
+	{ NOTHING,   300 },
+	{ A,          5 },
+	{ NOTHING,   300 }
+};
 
-	// Back at main flow
-	{ NOTHING,  175 }, // Ater throw wait
+static const command after_feed[] = {
 	{ B,          5 },
-	{ NOTHING,   20 },
+	{ NOTHING,   300 },
 	{ B,          5 },
-	{ NOTHING,   20 },
+	{ NOTHING,   300 },
 	{ B,          5 },
-	{ NOTHING,   20 },
+	{ NOTHING,   300 },
 	{ B,          5 },
-	{ NOTHING,   20 },
-	{ B,          5 },
-	{ NOTHING,   20 },
-	{ B,          5 },
-	{ NOTHING,   20 },
-	{ B,          5 },
-	{ NOTHING,   20 },
-	{ B,          5 },
-	{ NOTHING,   20 },
-	{ B,          5 },
-	{ NOTHING,   20 },
-	{ B,          5 },
-	{ NOTHING,   20 },
-	{ B,          5 },
-	{ NOTHING,   20 },
-	{ B,          5 },
-	{ NOTHING,   20 },
-	{ B,          5 },
-	{ NOTHING,   20 }, // To the rewards
-	{ B,          5 },
-	{ NOTHING,   20 },
-	{ B,          5 },
-	{ NOTHING,   20 },
-	{ B,          5 },
-	{ NOTHING,   20 },
-	{ B,          5 },
-	{ NOTHING,   20 },
-	
-	{ B,          5 }, // Wait for 450 cycles by bashing B (Like real players do!)
-	{ NOTHING,   20 },
-	{ B,          5 },
-	{ NOTHING,   20 },
-	{ B,          5 },
-	{ NOTHING,   20 },
-	{ B,          5 },
-	{ NOTHING,   20 },
-	{ B,          5 },
-	{ NOTHING,   20 },
-	{ B,          5 },
-	{ NOTHING,   20 },
-	{ B,          5 },
-	{ NOTHING,   20 },
-	{ B,          5 },
-	{ NOTHING,   20 },
-	{ B,          5 },
-	{ NOTHING,   20 },
-	{ B,          5 },
-	{ NOTHING,   20 },
-	{ B,          5 },
-	{ NOTHING,   20 },
-	{ B,          5 },
-	{ NOTHING,   20 },
-	{ B,          5 },
-	{ NOTHING,   20 },
-	{ B,          5 },
-	{ NOTHING,   20 },
-	{ B,          5 },
-	{ NOTHING,   20 },
-	{ B,          5 },
-	{ NOTHING,   20 },
-	{ B,          5 },
-	{ NOTHING,   20 },
-	{ B,          5 },
-	{ NOTHING,   20 } // Saving, intermission
+	{ NOTHING,   300 }
 };
 
 // Main entry point.
@@ -298,21 +217,16 @@ void HID_Task(void) {
 
 typedef enum {
 	SYNC_CONTROLLER,
-	SYNC_POSITION,
-	BREATHE,
-	PROCESS,
-	CLEANUP,
-	DONE
+	BUY_ITEM,
+	FEED_ITEM,
+	AFTER_FEED
 } State_t;
 State_t state = SYNC_CONTROLLER;
 
-#define ECHOES 2
-int echoes = 0;
+
 USB_JoystickReport_Input_t last_report;
 
 int report_count = 0;
-int xpos = 0;
-int ypos = 0;
 int bufindex = 0;
 int duration_count = 0;
 int portsval = 0;
@@ -328,155 +242,172 @@ void GetNextReport(USB_JoystickReport_Input_t* const ReportData) {
 	ReportData->RY = STICK_CENTER;
 	ReportData->HAT = HAT_CENTER;
 
-	// Repeat ECHOES times the last report
-	if (echoes > 0)
-	{
-		memcpy(ReportData, &last_report, sizeof(USB_JoystickReport_Input_t));
-		echoes--;
-		return;
-	}
-
 	// States and moves management
 	switch (state)
 	{
+        
+    case SYNC_CONTROLLER:
 
-		case SYNC_CONTROLLER:
-			state = BREATHE;
+        switch (sync_controller[bufindex].button)
+        {
+        case TRIGGERS:
+            ReportData->Button |= SWITCH_L | SWITCH_R;
+            break;
+        case A:
+            ReportData->Button |= SWITCH_A;
 			break;
+        case NOTHING:
+            ReportData->LX = STICK_CENTER;
+            ReportData->LY = STICK_CENTER;
+            ReportData->RX = STICK_CENTER;
+            ReportData->RY = STICK_CENTER;
+            ReportData->HAT = HAT_CENTER;
+            break;
+		}
+        duration_count++;
+        
+        if (duration_count > sync_controller[bufindex].duration)
+        {
+            bufindex++;
+            duration_count = 0;				
+        }
+        if (bufindex > (int) (sizeof(sync_controller)/sizeof(sync_controller[0]) - 1)){
+            portsval = ~portsval;
+            PORTD = portsval; //flash LED(s) and sound buzzer if attached
+            PORTB = portsval;
+            state = BUY_ITEM;
+            bufindex = 0;
+        }
+        break;
+        
+    case BUY_ITEM:
+        
+	   	switch (buy_item[bufindex].button)
+        {
+        case LEFT:
+            ReportData->HAT = HAT_LEFT;				
+            break;
 
-		// case SYNC_CONTROLLER:
-		// 	if (report_count > 550)
-		// 	{
-		// 		report_count = 0;
-		// 		state = SYNC_POSITION;
-		// 	}
-		// 	else if (report_count == 250 || report_count == 300 || report_count == 325)
-		// 	{
-		// 		ReportData->Button |= SWITCH_L | SWITCH_R;
-		// 	}
-		// 	else if (report_count == 350 || report_count == 375 || report_count == 400)
-		// 	{
-		// 		ReportData->Button |= SWITCH_A;
-		// 	}
-		// 	else
-		// 	{
-		// 		ReportData->Button = 0;
-		// 		ReportData->LX = STICK_CENTER;
-		// 		ReportData->LY = STICK_CENTER;
-		// 		ReportData->RX = STICK_CENTER;
-		// 		ReportData->RY = STICK_CENTER;
-		// 		ReportData->HAT = HAT_CENTER;
-		// 	}
-		// 	report_count++;
-		// 	break;
+        case A:
+            ReportData->Button |= SWITCH_A;
+            break;
+            
+        case B:
+            ReportData->Button |= SWITCH_B;
+            break;
 
-		case SYNC_POSITION:
-			bufindex = 0;
+        case PLUS:
+            ReportData->Button |= SWITCH_PLUS;
+            break;
+            
+        case NOTHING:
+            ReportData->LX = STICK_CENTER;
+            ReportData->LY = STICK_CENTER;
+            ReportData->RX = STICK_CENTER;
+            ReportData->RY = STICK_CENTER;
+            ReportData->HAT = HAT_CENTER;
+            break;
+        }
 
+        duration_count++;
+        
+        if (duration_count > buy_item[bufindex].duration)
+        {
+            bufindex++;
+            duration_count = 0;				
+        }
+        
+        
+        if (bufindex > (int)( sizeof(buy_item) / sizeof(buy_item[0])) - 1)
+        {
+            portsval = ~portsval;
+            PORTD = portsval; //flash LED(s) and sound buzzer if attached
+            PORTB = portsval;
+            state = FEED_ITEM;
+            bufindex = 0;
+        }
+        
+        break;
 
-			ReportData->Button = 0;
-			ReportData->LX = STICK_CENTER;
-			ReportData->LY = STICK_CENTER;
-			ReportData->RX = STICK_CENTER;
-			ReportData->RY = STICK_CENTER;
-			ReportData->HAT = HAT_CENTER;
+    case FEED_ITEM:
+        
+        switch(feed_item[bufindex].button){
+            
+        case A:
+            ReportData->Button |= SWITCH_A;
+            break;
+            
+        case NOTHING:
+            ReportData->LX = STICK_CENTER;
+                ReportData->LY = STICK_CENTER;
+                ReportData->RX = STICK_CENTER;
+                ReportData->RY = STICK_CENTER;
+                ReportData->HAT = HAT_CENTER;
+                break;
+        }
+        duration_count++;
+        
+        if (duration_count > feed_item[bufindex].duration)
+        {
+            bufindex++;
+            duration_count = 0;				
+            }
+        
+        
+        if (bufindex > (int)( sizeof(feed_item) / sizeof(feed_item[0])) - 1)
+        {
+            bufindex = 0;
+            feed_time-- ;
+            if (feed_time < 1){
+                portsval = ~portsval;
+                PORTD = portsval; //flash LED(s) and sound buzzer if attached
+                PORTB = portsval;
+                state = AFTER_FEED;
+                feed_time = 10;
+            }
+        }
+        
+        break;
+        
+    case AFTER_FEED:
+         switch(after_feed[bufindex].button){
 
+            case B:
+                ReportData->Button |= SWITCH_B;
+            break;
 
-			state = BREATHE;
-			break;
+            case NOTHING:
+                ReportData->LX = STICK_CENTER;
+                ReportData->LY = STICK_CENTER;
+                ReportData->RX = STICK_CENTER;
+                ReportData->RY = STICK_CENTER;
+                ReportData->HAT = HAT_CENTER;
+            break;
+            }
+            duration_count++;
 
-		case BREATHE:
-			state = PROCESS;
-			break;
+            if (duration_count > after_feed[bufindex].duration)
+            {
+                bufindex++;
+                duration_count = 0;				
+            }
 
-		case PROCESS:
+            if (bufindex > (int) (sizeof(after_feed) / sizeof(after_feed[0]) - 1))
+            {
+                bufindex = 0;
+                portsval = ~portsval;
+                PORTD = portsval; //flash LED(s) and sound buzzer if attached
+                PORTB = portsval;
+                state = BUY_ITEM;
+            }
 
-			switch (step[bufindex].button)
-			{
-
-				case UP:
-					ReportData->LY = STICK_MIN;				
-					break;
-
-				case LEFT:
-					ReportData->LX = STICK_MIN;				
-					break;
-
-				case DOWN:
-					ReportData->LY = STICK_MAX;				
-					break;
-
-				case RIGHT:
-					ReportData->LX = STICK_MAX;				
-					break;
-
-				case A:
-					ReportData->Button |= SWITCH_A;
-					break;
-
-				case B:
-					ReportData->Button |= SWITCH_B;
-					break;
-
-				case R:
-					ReportData->Button |= SWITCH_R;
-					break;
-
-				case THROW:
-					ReportData->LY = STICK_MIN;				
-					ReportData->Button |= SWITCH_R;
-					break;
-
-				case TRIGGERS:
-					ReportData->Button |= SWITCH_L | SWITCH_R;
-					break;
-
-				default:
-					ReportData->LX = STICK_CENTER;
-					ReportData->LY = STICK_CENTER;
-					ReportData->RX = STICK_CENTER;
-					ReportData->RY = STICK_CENTER;
-					ReportData->HAT = HAT_CENTER;
-					break;
-			}
-
-			duration_count++;
-
-			if (duration_count > step[bufindex].duration)
-			{
-				bufindex++;
-				duration_count = 0;				
-			}
-
-
-			if (bufindex > (int)( sizeof(step) / sizeof(step[0])) - 1)
-			{
-
-				// state = CLEANUP;
-
-				bufindex = 7;
-				duration_count = 0;
-
-				state = BREATHE;
-
-				ReportData->LX = STICK_CENTER;
-				ReportData->LY = STICK_CENTER;
-				ReportData->RX = STICK_CENTER;
-				ReportData->RY = STICK_CENTER;
-				ReportData->HAT = HAT_CENTER;
-
-
-				// state = DONE;
-//				state = BREATHE;
-
-			}
-
-			break;
-
-		case CLEANUP:
-			state = DONE;
-			break;
-
+            break;
+    }
+    return;
+            
+            
+                
+/*
 		case DONE:
 			#ifdef ALERT_WHEN_DONE
 			portsval = ~portsval;
@@ -486,6 +417,7 @@ void GetNextReport(USB_JoystickReport_Input_t* const ReportData) {
 			#endif
 			return;
 	}
+*/
 
 	// // Inking
 	// if (state != SYNC_CONTROLLER && state != SYNC_POSITION)
@@ -493,7 +425,5 @@ void GetNextReport(USB_JoystickReport_Input_t* const ReportData) {
 	// 		ReportData->Button |= SWITCH_A;
 
 	// Prepare to echo this report
-	memcpy(&last_report, ReportData, sizeof(USB_JoystickReport_Input_t));
-	echoes = ECHOES;
 
 }
