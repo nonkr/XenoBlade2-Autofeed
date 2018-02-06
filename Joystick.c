@@ -55,52 +55,50 @@ static const command sync_controller[] = {
 };
 
 static const command buy_item[] = {
-    { A,          5 },
-    { NOTHING,  300 },
 	{ A,          5 }, 
-	{ NOTHING,  300 },
+	{ NOTHING,  200 },
 	{ A,          5 }, 
-	{ NOTHING,  300 }, 
+	{ NOTHING,  200 }, 
 	{ A,          5 }, 
-	{ NOTHING,  300 },
+	{ NOTHING,  200 },
 	{ A,          5 },
-	{ NOTHING,  300 },
+	{ NOTHING,  200 },
 	{ LEFT,       5 },
-	{ NOTHING,  300 },
+	{ NOTHING,  200 },
 	{ A,          5 },
-	{ NOTHING,  300 }, 
+	{ NOTHING,  200 }, 
 	{ B,          5 },
-	{ NOTHING,  300 },
+	{ NOTHING,  200 },
 	{ B,          5 },
-	{ NOTHING,  300 },
+	{ NOTHING,  200 },
     { PLUS,       5 },
 	{ NOTHING,  300 },
 	{ A,          5 },
-	{ NOTHING,  300 },
+	{ NOTHING,  200 },
 	{ A,          5 },
-	{ NOTHING,  300 },
+	{ NOTHING,  200 },
     { LEFT,       5 },
-	{ NOTHING,  300 },
+	{ NOTHING,  200 },
 	{ A,          5 },
-	{ NOTHING,  300 }
+	{ NOTHING,  200 }
 };
 
 static const command feed_item[] = {
 	{ A,	      5 },
 	{ NOTHING,   300 },
 	{ A,          5 },
-	{ NOTHING,   300 },
+	{ NOTHING,   150 },
 	{ A,          5 },
-	{ NOTHING,   300 }
+	{ NOTHING,   150 }
 };
 
 static const command after_feed[] = {
 	{ B,          5 },
-	{ NOTHING,   300 },
+	{ NOTHING,   200 },
 	{ B,          5 },
-	{ NOTHING,   300 },
+	{ NOTHING,   200 },
 	{ B,          5 },
-	{ NOTHING,   300 },
+	{ NOTHING,   200 },
 	{ B,          5 },
 	{ NOTHING,   300 }
 };
