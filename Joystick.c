@@ -45,7 +45,9 @@ typedef struct
     uint16_t  duration;
 } command;
 
-static int feed_time = 10; // if you don't upgrade your package capacity
+#define FEED_TIMES 40
+
+static int g_feed_times = FEED_TIMES; // if you don't upgrade your package capacity
 
 static const command sync_controller[] = {
     {NOTHING,  250},
@@ -54,56 +56,50 @@ static const command sync_controller[] = {
     {TRIGGERS, 5},
     {NOTHING,  150},
     {A,        5},
-    {NOTHING,  250}
+    {NOTHING,  250},
 };
 
 static const command buy_item[] = {
     {A,       5},
-    {NOTHING, 200},
+    {NOTHING, 80},
     {A,       5},
-    {NOTHING, 200},
+    {NOTHING, 80},
     {A,       5},
-    {NOTHING, 200},
+    {NOTHING, 80},
     {A,       5},
-    {NOTHING, 200},
+    {NOTHING, 80},
     {LEFT,    5},
-    {NOTHING, 200},
+    {NOTHING, 80},
     {A,       5},
-    {NOTHING, 200},
+    {NOTHING, 80},
     {B,       5},
-    {NOTHING, 200},
+    {NOTHING, 80},
     {B,       5},
-    {NOTHING, 200},
+    {NOTHING, 300},
     {PLUS,    5},
     {NOTHING, 300},
     {A,       5},
-    {NOTHING, 200},
+    {NOTHING, 80},
     {A,       5},
-    {NOTHING, 200},
+    {NOTHING, 80},
     {LEFT,    5},
-    {NOTHING, 200},
+    {NOTHING, 80},
     {A,       5},
-    {NOTHING, 200}
+    {NOTHING, 150},
 };
 
 static const command feed_item[] = {
     {A,       5},
-    {NOTHING, 300},
+    {NOTHING, 50},
     {A,       5},
-    {NOTHING, 150},
+    {NOTHING, 50},
     {A,       5},
-    {NOTHING, 150}
+    {NOTHING, 200},
 };
 
 static const command after_feed[] = {
-    {B,       5},
-    {NOTHING, 200},
-    {B,       5},
-    {NOTHING, 200},
-    {B,       5},
-    {NOTHING, 200},
-    {B,       5},
-    {NOTHING, 300}
+    {PLUS,    5},
+    {NOTHING, 400},
 };
 
 // Main entry point.
@@ -364,18 +360,17 @@ void GetNextReport(USB_JoystickReport_Input_t *const ReportData)
                 duration_count = 0;
             }
 
-
             if (bufindex > (int) (sizeof(feed_item) / sizeof(feed_item[0])) - 1)
             {
                 bufindex = 0;
-                feed_time--;
-                if (feed_time < 1)
+                g_feed_times--;
+                if (g_feed_times <= 0)
                 {
                     portsval  = ~portsval;
                     PORTD     = portsval; //flash LED(s) and sound buzzer if attached
                     PORTB     = portsval;
                     state     = AFTER_FEED;
-                    feed_time = 10;
+                    g_feed_times = FEED_TIMES;
                 }
             }
 
@@ -384,8 +379,8 @@ void GetNextReport(USB_JoystickReport_Input_t *const ReportData)
         case AFTER_FEED:
             switch (after_feed[bufindex].button)
             {
-                case B:
-                    ReportData->Button |= SWITCH_B;
+                case PLUS:
+                    ReportData->Button |= SWITCH_PLUS;
                     break;
 
                 case NOTHING:
